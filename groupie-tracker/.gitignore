@@ -1,0 +1,4 @@
+# Ignorer les fichiers hors serveur
+test.sh
+*.toml
+/tmp/*
