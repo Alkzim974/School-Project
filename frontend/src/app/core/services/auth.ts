@@ -91,6 +91,18 @@ export class Auth {
   }
 
   /**
+   * Upload avatar
+   */
+  uploadAvatar(file: File, token?: string): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const options = token ? { headers: { 'Authorization': `Bearer ${token}` } } : {};
+    
+    return this.http.post(`http://localhost:8081/api/users/avatar`, formData, options);
+  }
+
+  /**
    * Sauvegarder le token
    */
   private saveToken(token: string): void {

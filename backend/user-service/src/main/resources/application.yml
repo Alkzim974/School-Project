@@ -5,6 +5,12 @@
 # SERVER
 server:
   port: 8081
+  # ssl:
+  #   enabled: true
+  #   key-store: classpath:keystore.p12
+  #   key-store-password: changeit
+  #   key-store-type: PKCS12
+  #   key-alias: ecommerce
   servlet:
     context-path: /
   error:

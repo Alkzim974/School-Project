@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -113,6 +114,38 @@ public class UserController {
             UserResponse profile = userService.updateProfile(email, name, avatar);
             
             return ResponseEntity.ok(profile);
+            
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+    }
+    
+    /**
+     * API : UPLOAD AVATAR
+     * 
+     * POST /api/users/avatar
+     * Header: Authorization: Bearer <token>
+     * Content-Type: multipart/form-data
+     * Body: file (image file, max 5MB)
+     * 
+     * Réponse (200) :
+     * {
+     *   "avatarUrl": "uploads/avatars/507f1f77bcf86cd799439011.jpg"
+     * }
+     */
+    @PostMapping("/avatar")
+    public ResponseEntity<?> uploadAvatar(@RequestParam("file") MultipartFile file) {
+        try {
+            String email = getCurrentUserEmail();
+            String avatarUrl = userService.uploadAvatar(email, file);
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("avatarUrl", avatarUrl);
+            
+            return ResponseEntity.ok(response);
             
         } catch (RuntimeException e) {
             Map<String, String> error = new HashMap<>();

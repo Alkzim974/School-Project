@@ -5,12 +5,19 @@ import com.ecommerce.user.model.User;
 import com.ecommerce.user.repository.UserRepository;
 import com.ecommerce.user.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * USER SERVICE
@@ -36,6 +43,9 @@ public class UserService {
     
     @Autowired
     private JwtUtil jwtUtil;
+    
+    @Value("${upload.avatar-dir:./uploads/avatars}")
+    private String avatarDir;
     
     /**
      * INSCRIPTION (REGISTER)
@@ -108,7 +118,8 @@ public class UserService {
         String token = jwtUtil.generateToken(
             user.getId(),
             user.getEmail(),
-            user.getRole().name()
+            user.getRole().name(),
+            user.getName()
         );
         
         // 4. RETOURNER LA RÉPONSE AVEC LE TOKEN
@@ -196,6 +207,75 @@ public class UserService {
      */
     public Optional<User> getUserById(String id) {
         return userRepository.findById(id);
+    }
+    
+    /**
+     * UPLOAD AVATAR
+     * 
+     * @param email Email de l'utilisateur
+     * @param file Fichier image
+     * @return URL de l'avatar
+     */
+    public String uploadAvatar(String email, MultipartFile file) {
+        // Validation du fichier
+        if (file.isEmpty()) {
+            throw new RuntimeException("Le fichier est vide");
+        }
+        
+        // Vérifier la taille (max 5MB)
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new RuntimeException("La taille du fichier ne doit pas dépasser 5MB");
+        }
+        
+        // Vérifier le type de fichier
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new RuntimeException("Le fichier doit être une image");
+        }
+        
+        // Chercher l'utilisateur
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        
+        try {
+            // Créer le dossier s'il n'existe pas
+            Path uploadPath = Paths.get(avatarDir);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+            
+            // Générer un nom unique pour le fichier
+            String extension = getFileExtension(file.getOriginalFilename());
+            String filename = user.getId() + "_" + UUID.randomUUID().toString() + extension;
+            
+            // Sauvegarder le fichier
+            Path filePath = uploadPath.resolve(filename);
+            Files.copy(file.getInputStream(), filePath);
+            
+            // Construire l'URL relative
+            String avatarUrl = "/uploads/avatars/" + filename;
+            
+            // Mettre à jour l'utilisateur
+            user.setAvatar(avatarUrl);
+            user.setUpdatedAt(LocalDateTime.now());
+            userRepository.save(user);
+            
+            return avatarUrl;
+            
+        } catch (IOException e) {
+            throw new RuntimeException("Erreur lors de l'upload de l'avatar: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Extraire l'extension d'un fichier
+     */
+    private String getFileExtension(String filename) {
+        if (filename == null || filename.isEmpty()) {
+            return "";
+        }
+        int lastDot = filename.lastIndexOf('.');
+        return (lastDot == -1) ? "" : filename.substring(lastDot);
     }
     
     /**

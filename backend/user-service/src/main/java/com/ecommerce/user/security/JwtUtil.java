@@ -53,6 +53,7 @@ public class JwtUtil {
      * @param userId ID de l'utilisateur
      * @param email Email de l'utilisateur
      * @param role Rôle (CLIENT ou SELLER)
+     * @param name Nom de l'utilisateur
      * @return Le token JWT signé
      * 
      * Processus :
@@ -62,10 +63,11 @@ public class JwtUtil {
      * 4. Définit la date d'expiration (maintenant + 24h)
      * 5. Signe avec la clé secrète
      */
-    public String generateToken(String userId, String email, String role) {
+    public String generateToken(String userId, String email, String role, String name) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("role", role);
+        claims.put("name", name);
         
         return Jwts.builder()
                 .setClaims(claims)                          // Ajoute les données

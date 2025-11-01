@@ -125,7 +125,9 @@ public class SecurityConfig {
         // Origines autorisées (Angular en dev)
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:4200",
-            "http://localhost:3000"
+            "https://localhost:4200",
+            "http://localhost:3000",
+            "https://localhost:3000"
         ));
         
         // Méthodes HTTP autorisées

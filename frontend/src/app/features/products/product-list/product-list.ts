@@ -174,12 +174,26 @@ export class ProductList implements OnInit {
       return;
     }
 
+    // Vérifier si le panier ne dépasse pas le stock disponible
+    const currentCart = this.cartService.getCartItems();
+    const existingItem = currentCart.find(item => item.productId === product.id);
+    const currentQuantityInCart = existingItem ? existingItem.quantity : 0;
+
+    if (currentQuantityInCart >= product.stock) {
+      this.snackBar.open(`Stock maximum atteint (${product.stock} disponible)`, 'Fermer', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
     this.cartService.addToCart({
       productId: product.id,
       name: product.name,
       price: product.price,
       quantity: 1,
-      imageUrl: product.imageUrl || null
+      imageUrl: product.imageUrl || null,
+      stock: product.stock // Ajouter le stock pour vérification ultérieure
     });
 
     this.snackBar.open(`${product.name} ajouté au panier`, 'Voir le panier', {

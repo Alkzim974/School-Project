@@ -56,6 +56,30 @@
           <mat-icon matPrefix>business_center</mat-icon>
         </mat-form-field>
 
+        <!-- Avatar (Vendeur uniquement) -->
+        @if (registerForm.get('role')?.value === 'SELLER') {
+          <div class="avatar-upload">
+            <label class="avatar-label">
+              <mat-icon>account_circle</mat-icon>
+              Avatar (optionnel)
+            </label>
+            <input type="file" accept="image/*" (change)="onAvatarSelected($event)" #avatarInput hidden>
+            <button mat-stroked-button type="button" (click)="avatarInput.click()">
+              <mat-icon>upload</mat-icon>
+              Choisir une image
+            </button>
+            @if (selectedAvatar) {
+              <div class="avatar-preview">
+                <img [src]="avatarPreview" alt="Avatar preview">
+                <button mat-icon-button type="button" (click)="removeAvatar()">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            }
+            <div class="avatar-hint">Max 5MB - JPG, PNG, GIF</div>
+          </div>
+        }
+
         <!-- Message d'erreur -->
         @if (errorMessage) {
           <div class="error-message">

@@ -112,13 +112,36 @@ export class ProductDetail implements OnInit {
   addToCart(): void {
     if (!this.product) return;
 
+    // Vérifier si le panier + la quantité actuelle ne dépasse pas le stock
+    const currentCart = this.cartService.getCartItems();
+    const existingItem = currentCart.find(item => item.productId === this.product!.id);
+    const currentQuantityInCart = existingItem ? existingItem.quantity : 0;
+
+    if (currentQuantityInCart + this.quantity > this.product.stock) {
+      const remaining = this.product.stock - currentQuantityInCart;
+      this.snackBar.open(
+        remaining > 0 
+          ? `Stock insuffisant ! Seulement ${remaining} disponible(s) en plus` 
+          : `Stock maximum déjà atteint (${this.product.stock} en stock)`,
+        'Fermer',
+        {
+          duration: 4000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top',
+          panelClass: ['error-snackbar']
+        }
+      );
+      return;
+    }
+
     // Utiliser le service Cart
     this.cartService.addToCart({
       productId: this.product.id,
       name: this.product.name,
       price: this.product.price,
       quantity: this.quantity,
-      imageUrl: this.images[0] || null
+      imageUrl: this.images[0] || null,
+      stock: this.product.stock
     });
 
     // Notification

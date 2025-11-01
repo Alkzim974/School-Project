@@ -44,6 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String jwt = null;
         String role = null;
         String userId = null;
+        String userName = null;
         
         // 2. EXTRAIRE LE TOKEN (format: "Bearer eyJhbGciOiJIUzI1NiJ9...")
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
@@ -53,6 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 email = jwtUtil.extractEmail(jwt);
                 role = jwtUtil.extractRole(jwt);
                 userId = jwtUtil.extractUserId(jwt);
+                userName = jwtUtil.extractName(jwt);
             } catch (Exception e) {
                 logger.error("Error extracting JWT claims: " + e.getMessage());
             }
@@ -80,6 +82,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Stocker le userId dans les détails pour l'utiliser dans les controllers
                 request.setAttribute("userId", userId);
                 request.setAttribute("userRole", role);
+                request.setAttribute("userName", userName);
                 
                 // Mettre l'authentification dans le contexte Spring Security
                 SecurityContextHolder.getContext().setAuthentication(authToken);

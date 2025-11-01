@@ -34,6 +34,8 @@ export class Register {
   loading = false;
   errorMessage = '';
   successMessage = '';
+  selectedAvatar: File | null = null;
+  avatarPreview: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -48,6 +50,40 @@ export class Register {
     });
   }
 
+  onAvatarSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      
+      // Validation taille
+      if (file.size > 5 * 1024 * 1024) {
+        this.errorMessage = 'L\'image ne doit pas dépasser 5MB';
+        return;
+      }
+      
+      // Validation type
+      if (!file.type.startsWith('image/')) {
+        this.errorMessage = 'Le fichier doit être une image';
+        return;
+      }
+      
+      this.selectedAvatar = file;
+      this.errorMessage = '';
+      
+      // Générer la preview
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.avatarPreview = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removeAvatar(): void {
+    this.selectedAvatar = null;
+    this.avatarPreview = null;
+  }
+
   onSubmit(): void {
     if (this.registerForm.invalid) {
       return;
@@ -60,21 +96,43 @@ export class Register {
     this.authService.register(this.registerForm.value).subscribe({
       next: (response) => {
         console.log('Inscription réussie:', response);
-        this.successMessage = 'Compte créé avec succès ! Redirection vers la connexion...';
         
-        // Rediriger vers login après 2 secondes
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 2000);
+        // Si avatar sélectionné, l'uploader
+        if (this.selectedAvatar && response.token) {
+          this.uploadAvatar(response.token);
+        } else {
+          this.showSuccessAndRedirect();
+        }
       },
       error: (error) => {
         console.error('Erreur d\'inscription:', error);
         this.errorMessage = error.error?.error || 'Une erreur est survenue lors de l\'inscription';
         this.loading = false;
-      },
-      complete: () => {
-        this.loading = false;
       }
     });
+  }
+
+  private uploadAvatar(token: string): void {
+    if (!this.selectedAvatar) return;
+    
+    this.authService.uploadAvatar(this.selectedAvatar, token).subscribe({
+      next: () => {
+        console.log('Avatar uploadé avec succès');
+        this.showSuccessAndRedirect();
+      },
+      error: (error) => {
+        console.error('Erreur upload avatar:', error);
+        // Continuer même si l'avatar échoue
+        this.showSuccessAndRedirect();
+      }
+    });
+  }
+
+  private showSuccessAndRedirect(): void {
+    this.successMessage = 'Compte créé avec succès ! Redirection vers la connexion...';
+    setTimeout(() => {
+      this.router.navigate(['/login']);
+    }, 2000);
+    this.loading = false;
   }
 }

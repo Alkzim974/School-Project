@@ -53,6 +53,13 @@ public class JwtUtil {
     }
     
     /**
+     * Extrait le nom de l'utilisateur du token
+     */
+    public String extractName(String token) {
+        return extractClaim(token, claims -> claims.get("name", String.class));
+    }
+    
+    /**
      * Extrait la date d'expiration
      */
     public Date extractExpiration(String token) {

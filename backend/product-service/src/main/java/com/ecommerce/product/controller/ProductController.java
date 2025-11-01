@@ -92,7 +92,7 @@ public class ProductController {
         try {
             // Récupérer userId et userName depuis le JWT (mis par le filter)
             String userId = (String) httpRequest.getAttribute("userId");
-            String userName = "Seller"; // TODO: récupérer le vrai nom depuis User Service
+            String userName = (String) httpRequest.getAttribute("userName");
             
             ProductResponse product = productService.createProduct(request, userId, userName);
             return ResponseEntity.status(HttpStatus.CREATED).body(product);
