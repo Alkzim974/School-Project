@@ -3,6 +3,12 @@
   <mat-toolbar color="primary" class="toolbar">
     <span class="title">📊 Tableau de bord Vendeur</span>
     <span class="spacer"></span>
+    @if (currentUser && currentUser.avatar) {
+      <img [src]="getAvatarUrl(currentUser.avatar)" alt="Avatar" class="avatar">
+    }
+    @if (currentUser && !currentUser.avatar) {
+      <mat-icon class="avatar-icon">account_circle</mat-icon>
+    }
     <button mat-button (click)="viewProducts()">
       <mat-icon>storefront</mat-icon>
       Voir la boutique

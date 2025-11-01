@@ -128,7 +128,8 @@ public class UserService {
             user.getId(),
             user.getEmail(),
             user.getName(),
-            user.getRole().name()
+            user.getRole().name(),
+            user.getAvatar()
         );
     }
     

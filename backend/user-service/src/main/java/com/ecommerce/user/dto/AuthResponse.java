@@ -47,14 +47,20 @@ public class AuthResponse {
     private String role;
     
     /**
+     * Avatar URL de l'utilisateur
+     */
+    private String avatar;
+    
+    /**
      * Constructeur avec token seulement
      */
-    public AuthResponse(String token, String userId, String email, String name, String role) {
+    public AuthResponse(String token, String userId, String email, String name, String role, String avatar) {
         this.token = token;
         this.type = "Bearer";
         this.userId = userId;
         this.email = email;
         this.name = name;
         this.role = role;
+        this.avatar = avatar;
     }
 }

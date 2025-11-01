@@ -23,15 +23,20 @@ Créer une plateforme où :
 - ✅ Redirection automatique selon le rôle
 - ✅ Protection des routes frontend et backend
 - ✅ Hash des mots de passe avec BCrypt
+- ✅ **HTTPS/SSL activé** (certificats auto-signés pour développement)
+- ✅ **Upload d'avatar** pour les vendeurs
+- ✅ **Validation de stock** dans le panier et pages produits
 
 ### 👥 **Pour les Clients (CLIENT)**
 - ✅ Liste des produits avec images
 - ✅ Recherche de produits
 - ✅ Page détail produit avec galerie d'images
 - ✅ Sélecteur de quantité
+- ✅ **Validation de stock** avant ajout au panier
 - ✅ Ajout au panier avec notifications
 - ✅ Panier d'achat complet :
   - Badge avec compteur en temps réel
+  - **Validation de stock** lors de l'augmentation de quantité
   - Gestion des quantités (augmenter/diminuer)
   - Suppression d'articles
   - Calcul du total
@@ -40,6 +45,7 @@ Créer une plateforme où :
 
 ### 🏪 **Pour les Vendeurs (SELLER)**
 - ✅ Dashboard de gestion des produits
+- ✅ **Avatar de profil** (upload lors de l'inscription)
 - ✅ Création de produits avec formulaire validé
 - ✅ Upload d'images multiples (max 2MB par image)
 - ✅ Modification de produits existants :
@@ -49,6 +55,8 @@ Créer une plateforme où :
 - ✅ Suppression de produits (cascade avec Kafka)
 - ✅ Tableau de bord avec :
   - Liste des produits en tableau
+  - **Avatar du vendeur** dans la toolbar
+  - **Nom réel du vendeur** sur les produits
   - Indicateurs de stock (normal/faible)
   - Actions rapides (éditer/supprimer)
   - Notifications de succès/erreur
@@ -201,7 +209,41 @@ Créer une plateforme où :
 - **Maven 3.8+**
 - **Git**
 
-### Installation Complète
+### 🎯 Démarrage Rapide (Automatique)
+
+#### Windows (PowerShell)
+```powershell
+.\start-all.ps1
+```
+
+#### Linux / Mac
+```bash
+chmod +x start-all.sh
+./start-all.sh
+```
+
+Ces scripts démarrent automatiquement :
+- ✅ Docker Compose (MongoDB + Kafka + Zookeeper)
+- ✅ User Service (port 8081)
+- ✅ Product Service (port 8082)
+- ✅ Media Service (port 8083)
+- ✅ Frontend Angular (port 4200)
+
+#### Arrêter tous les services
+
+**Windows:**
+```powershell
+.\stop-all.ps1
+```
+
+**Linux / Mac:**
+```bash
+./stop-all.sh
+```
+
+---
+
+### 📋 Installation Manuelle (Étape par étape)
 
 #### 1️⃣ **Cloner le projet**
 ```bash
@@ -262,12 +304,26 @@ Le serveur de développement démarre sur **http://localhost:4200**
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| **Frontend** | http://localhost:4200 | Application Angular |
-| **User Service** | http://localhost:8081 | API Utilisateurs |
-| **Product Service** | http://localhost:8082 | API Produits |
-| **Media Service** | http://localhost:8083 | API Images |
+| **Frontend** | https://localhost:4200 | Application Angular |
+| **User Service** | https://localhost:8081 | API Utilisateurs |
+| **Product Service** | https://localhost:8082 | API Produits |
+| **Media Service** | https://localhost:8083 | API Images |
 | **MongoDB** | localhost:27017 | Base de données |
 | **Kafka** | localhost:9092 | Message broker |
+
+### ⚠️ Note importante sur HTTPS
+
+Les services utilisent des **certificats SSL auto-signés** pour le développement. Lors du premier accès, votre navigateur affichera un avertissement de sécurité.
+
+**Pour accepter les certificats :**
+1. Ouvrez chaque URL backend dans votre navigateur :
+   - https://localhost:8081/api/auth/health
+   - https://localhost:8082/api/products
+   - https://localhost:8083/api/media/health
+2. Cliquez sur **"Avancé"** puis **"Continuer vers localhost"**
+3. Rechargez le frontend : https://localhost:4200
+
+**Alternative (pour développement seulement) :** Pour désactiver HTTPS, commentez les sections `ssl:` dans les fichiers `application.yml` des 3 services backend et changez les URLs de `https://` vers `http://` dans les services Angular.
 
 ---
 

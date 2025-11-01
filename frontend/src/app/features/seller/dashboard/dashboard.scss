@@ -17,6 +17,24 @@
   .spacer {
     flex: 1 1 auto;
   }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 16px;
+    border: 2px solid white;
+    cursor: pointer;
+  }
+
+  .avatar-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    margin-right: 16px;
+    color: white;
+  }
 }
 
 .content {

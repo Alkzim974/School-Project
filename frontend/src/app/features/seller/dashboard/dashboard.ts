@@ -35,6 +35,7 @@ export class Dashboard implements OnInit {
   displayedColumns: string[] = ['name', 'category', 'price', 'stock', 'actions'];
   loading = false;
   errorMessage = '';
+  currentUser: any = null;
 
   constructor(
     private productService: Product,
@@ -45,7 +46,12 @@ export class Dashboard implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.currentUser = this.authService.getCurrentUser();
     this.loadMyProducts();
+  }
+
+  getAvatarUrl(avatar: string): string {
+    return `https://localhost:8081${avatar}`;
   }
 
   loadMyProducts(): void {

@@ -8,7 +8,7 @@ import { Cart } from './cart';
   providedIn: 'root',
 })
 export class Auth {
-  private readonly API_URL = 'http://localhost:8081/api/auth';
+  private readonly API_URL = 'https://localhost:8081/api/auth';
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'current_user';
   
@@ -39,7 +39,8 @@ export class Auth {
             id: response.userId,
             email: response.email,
             name: response.name,
-            role: response.role
+            role: response.role,
+            avatar: response.avatar
           };
           this.saveUser(user);
           this.currentUserSubject.next(user);
@@ -99,7 +100,18 @@ export class Auth {
     
     const options = token ? { headers: { 'Authorization': `Bearer ${token}` } } : {};
     
-    return this.http.post(`http://localhost:8081/api/users/avatar`, formData, options);
+    return this.http.post<{avatarUrl: string}>(`https://localhost:8081/api/users/avatar`, formData, options)
+      .pipe(
+        tap(response => {
+          // Mettre à jour l'avatar dans le localStorage
+          const currentUser = this.getCurrentUser();
+          if (currentUser) {
+            currentUser.avatar = response.avatarUrl;
+            this.saveUser(currentUser);
+            this.currentUserSubject.next(currentUser);
+          }
+        })
+      );
   }
 
   /**

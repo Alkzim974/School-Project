@@ -51,7 +51,16 @@ export class CartPage implements OnInit {
   }
 
   increaseQuantity(item: CartItem): void {
-    this.cartService.updateQuantity(item.productId, item.quantity + 1);
+    // Vérifier si on peut augmenter la quantité (stock disponible)
+    const stock = item.stock ?? Infinity; // Si stock undefined, pas de limite
+    if (item.quantity < stock) {
+      this.cartService.updateQuantity(item.productId, item.quantity + 1);
+    } else {
+      this.snackBar.open(`Stock maximum atteint (${stock} disponibles)`, 'Fermer', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+    }
   }
 
   decreaseQuantity(item: CartItem): void {

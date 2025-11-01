@@ -47,6 +47,7 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/media/product/**",   // GET media by productId (public)
                     "/api/media/file/**",      // Download file (public)
+                    "/api/media/health",       // Health check
                     "/error"
                 ).permitAll()
                 
@@ -74,7 +75,9 @@ public class SecurityConfig {
         
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:4200",
-            "http://localhost:3000"
+            "https://localhost:4200",
+            "http://localhost:3000",
+            "https://localhost:3000"
         ));
         
         configuration.setAllowedMethods(Arrays.asList(

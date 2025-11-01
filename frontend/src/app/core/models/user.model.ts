@@ -27,4 +27,5 @@ export interface AuthResponse {
   email: string;
   name: string;
   role: 'CLIENT' | 'SELLER';
+  avatar?: string;
 }

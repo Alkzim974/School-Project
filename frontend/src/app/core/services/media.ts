@@ -7,7 +7,7 @@ import { Media } from '../models/media.model';
   providedIn: 'root',
 })
 export class MediaService {
-  private readonly API_URL = 'http://localhost:8083/api/media';
+  private readonly API_URL = 'https://localhost:8083/api/media';
 
   constructor(private http: HttpClient) { }
 
@@ -40,6 +40,6 @@ export class MediaService {
    * Construire l'URL complète d'une image
    */
   getImageUrl(url: string): string {
-    return `http://localhost:8083${url}`;
+    return `https://localhost:8083${url}`;
   }
 }

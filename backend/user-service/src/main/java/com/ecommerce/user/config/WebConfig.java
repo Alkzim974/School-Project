@@ -39,7 +39,14 @@ public class WebConfig implements WebMvcConfigurer {
      */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // Convertir le chemin relatif en chemin absolu
+        String absolutePath = avatarDir;
+        if (!avatarDir.startsWith("file:") && !avatarDir.startsWith("/") && !avatarDir.contains(":")) {
+            // Chemin relatif, le convertir en absolu basé sur le répertoire de travail
+            absolutePath = System.getProperty("user.dir") + "/" + avatarDir;
+        }
+        
         registry.addResourceHandler("/uploads/avatars/**")
-                .addResourceLocations("file:" + avatarDir + "/");
+                .addResourceLocations("file:" + absolutePath + "/");
     }
 }

@@ -95,11 +95,9 @@ export class Register {
 
     this.authService.register(this.registerForm.value).subscribe({
       next: (response) => {
-        console.log('Inscription réussie:', response);
-        
-        // Si avatar sélectionné, l'uploader
-        if (this.selectedAvatar && response.token) {
-          this.uploadAvatar(response.token);
+        // Si avatar sélectionné, se connecter puis uploader l'avatar
+        if (this.selectedAvatar) {
+          this.loginAndUploadAvatar();
         } else {
           this.showSuccessAndRedirect();
         }
@@ -112,12 +110,28 @@ export class Register {
     });
   }
 
+  private loginAndUploadAvatar(): void {
+    const email = this.registerForm.get('email')?.value;
+    const password = this.registerForm.get('password')?.value;
+    
+    // Se connecter pour obtenir le token
+    this.authService.login({ email, password }).subscribe({
+      next: (loginResponse) => {
+        // Uploader l'avatar avec le token
+        this.uploadAvatar(loginResponse.token);
+      },
+      error: (error) => {
+        console.error('Erreur de connexion automatique:', error);
+        this.showSuccessAndRedirect();
+      }
+    });
+  }
+
   private uploadAvatar(token: string): void {
     if (!this.selectedAvatar) return;
     
     this.authService.uploadAvatar(this.selectedAvatar, token).subscribe({
       next: () => {
-        console.log('Avatar uploadé avec succès');
         this.showSuccessAndRedirect();
       },
       error: (error) => {

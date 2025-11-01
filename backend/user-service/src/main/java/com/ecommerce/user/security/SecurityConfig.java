@@ -90,6 +90,7 @@ public class SecurityConfig {
                     "/api/auth/register",      // Inscription
                     "/api/auth/login",         // Connexion
                     "/api/auth/health",        // Health check
+                    "/uploads/avatars/**",     // Avatars statiques
                     "/error"                   // Page d'erreur
                 ).permitAll()
                 
