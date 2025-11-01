@@ -2,14 +2,65 @@
 
 ## 📌 Description du Projet
 
-Plateforme e-commerce complète développée avec une architecture microservices utilisant **Spring Boot** pour le backend et **Angular** pour le frontend.
+Plateforme e-commerce **complète et fonctionnelle** développée avec une architecture microservices utilisant **Spring Boot** pour le backend et **Angular** pour le frontend.
 
 ### 🎯 Objectif Principal
 Créer une plateforme où :
-- Les **clients** peuvent consulter et acheter des produits
-- Les **vendeurs** peuvent gérer leurs produits et leurs images
-- Communication entre services via **Kafka**
-- Sécurité renforcée avec authentification JWT/OAuth2
+- Les **clients** peuvent consulter, rechercher et acheter des produits
+- Les **vendeurs** peuvent gérer leurs produits avec images multiples
+- Communication entre services via **Kafka** (suppression en cascade)
+- Sécurité renforcée avec authentification **JWT**
+- Système de **panier d'achat** personnalisé par utilisateur
+
+---
+
+## ✨ Fonctionnalités Implémentées
+
+### 🔐 **Authentification & Sécurité**
+- ✅ Inscription avec choix de rôle (CLIENT / SELLER)
+- ✅ Connexion sécurisée avec JWT
+- ✅ Guards Angular (auth, seller, login)
+- ✅ Redirection automatique selon le rôle
+- ✅ Protection des routes frontend et backend
+- ✅ Hash des mots de passe avec BCrypt
+
+### 👥 **Pour les Clients (CLIENT)**
+- ✅ Liste des produits avec images
+- ✅ Recherche de produits
+- ✅ Page détail produit avec galerie d'images
+- ✅ Sélecteur de quantité
+- ✅ Ajout au panier avec notifications
+- ✅ Panier d'achat complet :
+  - Badge avec compteur en temps réel
+  - Gestion des quantités (augmenter/diminuer)
+  - Suppression d'articles
+  - Calcul du total
+  - Panier persistant par utilisateur
+- ✅ Navigation fluide entre les pages
+
+### 🏪 **Pour les Vendeurs (SELLER)**
+- ✅ Dashboard de gestion des produits
+- ✅ Création de produits avec formulaire validé
+- ✅ Upload d'images multiples (max 2MB par image)
+- ✅ Modification de produits existants :
+  - Affichage des images actuelles
+  - Suppression d'images
+  - Ajout de nouvelles images
+- ✅ Suppression de produits (cascade avec Kafka)
+- ✅ Tableau de bord avec :
+  - Liste des produits en tableau
+  - Indicateurs de stock (normal/faible)
+  - Actions rapides (éditer/supprimer)
+  - Notifications de succès/erreur
+
+### 🎨 **Interface Utilisateur**
+- ✅ Design moderne avec **Angular Material**
+- ✅ Responsive (mobile, tablette, desktop)
+- ✅ Snackbar notifications pour feedback
+- ✅ Loading spinners
+- ✅ États vides avec call-to-action
+- ✅ Galerie d'images avec navigation
+- ✅ Cartes produits attrayantes
 
 ---
 
@@ -24,13 +75,19 @@ Créer une plateforme où :
 └── eureka-server         # Service discovery (optionnel)
 ```
 
-### Frontend (Angular)
+### Frontend (Angular 20)
 ```
-└── ecommerce-frontend    # Application Angular
-    ├── auth              # Authentification
-    ├── seller-dashboard  # Dashboard vendeur
-    ├── products          # Liste produits
-    └── media             # Gestion médias
+└── frontend
+    ├── core/
+    │   ├── guards/          # Auth, Seller, Login guards
+    │   ├── models/          # TypeScript interfaces
+    │   └── services/        # Auth, Product, Media, Cart services
+    ├── features/
+    │   ├── auth/            # Login, Register pages
+    │   ├── products/        # Product list, Product detail
+    │   ├── cart/            # Shopping cart page
+    │   └── seller/          # Dashboard, Product form dialog
+    └── styles/              # Global SCSS styles
 ```
 
 ---
@@ -38,145 +95,284 @@ Créer une plateforme où :
 ## 📊 Modèle de Données
 
 ### User (Utilisateur)
-```
-- id: String
-- name: String
-- email: String (unique)
-- password: String (hashé)
-- role: Enum (CLIENT / SELLER)
-- avatar: String (URL)
+```json
+{
+  "id": "String",
+  "name": "String",
+  "email": "String (unique)",
+  "password": "String (hashé avec BCrypt)",
+  "role": "Enum (CLIENT / SELLER)",
+  "createdAt": "Date",
+  "updatedAt": "Date"
+}
 ```
 
 ### Product (Produit)
-```
-- id: String
-- name: String
-- description: String
-- price: Double
-- quantity: Int
-- userId: String (référence au vendeur)
-- mediaIds: List<String> (références aux images)
+```json
+{
+  "id": "String",
+  "name": "String",
+  "description": "String",
+  "price": "Double",
+  "stock": "Int",
+  "category": "String",
+  "sellerId": "String (référence au vendeur)",
+  "sellerName": "String",
+  "createdAt": "Date",
+  "updatedAt": "Date"
+}
 ```
 
 ### Media (Image)
+```json
+{
+  "id": "String",
+  "url": "String (chemin local)",
+  "productId": "String (référence au produit)",
+  "uploadedAt": "Date"
+}
 ```
-- id: String
-- imagePath: String
-- productId: String (référence au produit)
+
+### Cart (Panier - localStorage)
+```json
+{
+  "cart_userId": [
+    {
+      "productId": "String",
+      "name": "String",
+      "price": "Double",
+      "quantity": "Int",
+      "imageUrl": "String"
+    }
+  ]
+}
 ```
 
 **Relations** :
 - Un User (SELLER) peut avoir plusieurs Products (1 → n)
 - Un Product peut avoir plusieurs Media (1 → n)
+- Suppression en cascade via Kafka : Product supprimé → Media supprimés automatiquement
+- Chaque utilisateur a son propre panier (clé unique dans localStorage)
 
 ---
 
 ## 🔧 Technologies Utilisées
 
 ### Backend
-- **Java 17+**
-- **Spring Boot 3.x**
-- **Spring Security** (JWT/OAuth2)
+- **Java 17**
+- **Spring Boot 3.2.0**
+- **Spring Security** (JWT)
 - **Spring Data MongoDB**
-- **Apache Kafka** (communication inter-services)
-- **MongoDB** (base de données)
-- **Docker** & **Docker Compose**
+- **Spring Kafka**
+- **MongoDB 7.0** (base de données)
+- **Apache Kafka 7.5.0** (message broker)
 - **Maven** (gestion dépendances)
+- **Lombok** (réduction boilerplate)
+- **Jackson** (JSON parsing)
 
 ### Frontend
-- **Angular 16+**
-- **TypeScript**
-- **Angular Material** (UI)
-- **RxJS** (gestion asynchrone)
-- **HttpClient** (API calls)
+- **Angular 20.3.6**
+- **Angular Material 20.2.11**
+- **TypeScript 5.x**
+- **RxJS** (programmation réactive)
+- **SCSS** (styling)
+- **Angular CLI**
+
+### Infrastructure
+- **Docker** (containerisation)
+- **Docker Compose** (orchestration)
+- **Git** (version control)
 
 ### Sécurité
-- **HTTPS** (Let's Encrypt)
+- **JWT tokens** (authentification)
 - **BCrypt** (hash passwords)
-- **JWT tokens**
 - **CORS configuration**
+- **Guards Angular** (protection routes)
+- **Validation des entrées**
 
 ---
 
 ## 🚀 Installation et Démarrage
 
 ### Prérequis
-- Java 17 ou supérieur
-- Node.js 18+ et npm
-- Docker et Docker Compose
-- MongoDB (via Docker)
-- Kafka (via Docker)
-- Maven
+- **Java 17** ou supérieur
+- **Node.js 18+** et npm
+- **Docker** et **Docker Compose**
+- **Maven 3.8+**
+- **Git**
 
-### Étapes d'installation
+### Installation Complète
 
-1. **Cloner le projet**
+#### 1️⃣ **Cloner le projet**
 ```bash
-git clone <repository-url>
+git clone https://zone01normandie.org/git/jbenromd/buy-01.git
 cd buy-01
 ```
 
-2. **Démarrer avec Docker**
+#### 2️⃣ **Démarrer l'infrastructure (MongoDB + Kafka)**
 ```bash
 docker-compose up -d
 ```
 
-3. **Backend - Chaque microservice**
+Vérifier que les containers tournent :
 ```bash
-cd user-service
+docker ps
+```
+
+Vous devriez voir :
+- `mongodb` sur le port 27017
+- `zookeeper` sur le port 2181
+- `kafka` sur le port 9092
+
+#### 3️⃣ **Backend - Compiler et lancer les microservices**
+
+**User Service** (Port 8081)
+```bash
+cd backend/user-service
 mvn clean install
 mvn spring-boot:run
 ```
 
-4. **Frontend**
+**Product Service** (Port 8082)
 ```bash
-cd ecommerce-frontend
-npm install
-ng serve
+cd backend/product-service
+mvn clean install
+mvn spring-boot:run
 ```
 
-5. **Accès**
-- Frontend: http://localhost:4200
-- API Gateway: http://localhost:8080
-- User Service: http://localhost:8081
-- Product Service: http://localhost:8082
-- Media Service: http://localhost:8083
+**Media Service** (Port 8083)
+```bash
+cd backend/media-service
+mvn clean install
+mvn spring-boot:run
+```
+
+#### 4️⃣ **Frontend - Angular**
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Le serveur de développement démarre sur **http://localhost:4200**
+
+---
+
+## 🌐 Accès à l'Application
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| **Frontend** | http://localhost:4200 | Application Angular |
+| **User Service** | http://localhost:8081 | API Utilisateurs |
+| **Product Service** | http://localhost:8082 | API Produits |
+| **Media Service** | http://localhost:8083 | API Images |
+| **MongoDB** | localhost:27017 | Base de données |
+| **Kafka** | localhost:9092 | Message broker |
+
+---
+
+## 👤 Comptes de Test
+
+### Client
+- **Email** : `bob@client.com`
+- **Mot de passe** : `password123`
+- **Rôle** : CLIENT
+
+### Vendeur
+- **Email** : `alice@seller.com`
+- **Mot de passe** : `password123`
+- **Rôle** : SELLER
 
 ---
 
 ## 🔐 Sécurité
 
 ### Mesures de Sécurité Implémentées
-✅ **HTTPS** - Chiffrement des données en transit  
-✅ **Hash des mots de passe** - BCrypt avec salt  
-✅ **JWT Authentication** - Tokens sécurisés  
-✅ **Validation des entrées** - Protection contre injections  
-✅ **Contrôle d'accès** - Role-based (CLIENT/SELLER)  
-✅ **Limitation upload** - Max 2MB pour les images  
-✅ **Validation fichiers** - Seulement images légitimes  
-✅ **Protection données sensibles** - Jamais exposées dans les réponses  
+✅ **JWT Authentication** - Tokens sécurisés avec expiration 24h  
+✅ **Hash des mots de passe** - BCrypt avec salt automatique  
+✅ **Guards Angular** - Protection des routes (auth, seller, login)  
+✅ **Role-based Access Control** - Séparation CLIENT/SELLER  
+✅ **Validation des entrées** - Backend et frontend  
+✅ **CORS configuré** - Sécurisation des requêtes cross-origin  
+✅ **Limitation upload** - Max 2MB par image  
+✅ **Validation fichiers** - Vérification type et taille  
+✅ **HTTP Interceptor** - Injection automatique du JWT  
+✅ **Protection données sensibles** - Mots de passe jamais exposés  
+
+### Architecture de Sécurité
+- **Frontend** : Guards empêchent l'accès non autorisé aux routes
+- **Backend** : `@PreAuthorize` sur les endpoints sensibles
+- **Communication** : JWT dans le header `Authorization: Bearer <token>`
+- **Panier** : Isolé par utilisateur avec clé unique dans localStorage
 
 ---
 
-## 📱 Fonctionnalités
+## 📱 Guide d'Utilisation
 
-### Pour tous les utilisateurs
-- ✅ Inscription (client ou vendeur)
-- ✅ Connexion / Déconnexion
-- ✅ Voir la liste des produits
+### 🔹 **En tant que CLIENT**
 
-### Pour les clients (CLIENT)
-- ✅ Consulter les produits
-- ✅ Voir les détails des produits
+1. **S'inscrire**
+   - Aller sur http://localhost:4200/register
+   - Remplir le formulaire avec rôle = CLIENT
+   - Cliquer sur "S'inscrire"
 
-### Pour les vendeurs (SELLER)
-- ✅ Dashboard de gestion
-- ✅ Créer des produits
-- ✅ Modifier ses produits
-- ✅ Supprimer ses produits
-- ✅ Upload d'images (max 2MB)
-- ✅ Gérer ses images
-- ✅ Upload/Modifier avatar
+2. **Se connecter**
+   - Email : votre email
+   - Mot de passe : votre mot de passe
+   - Redirection automatique vers `/products`
+
+3. **Consulter les produits**
+   - Liste des produits avec images
+   - Barre de recherche pour filtrer
+   - Cliquer sur "Détails" pour voir le produit complet
+
+4. **Page détail produit**
+   - Galerie d'images avec navigation
+   - Sélectionner la quantité
+   - Cliquer sur "Ajouter au panier"
+
+5. **Panier d'achat**
+   - Cliquer sur l'icône panier (badge avec compteur)
+   - Modifier les quantités (+/-)
+   - Supprimer des articles
+   - Voir le total
+   - "Procéder au paiement" (à implémenter)
+
+### 🔹 **En tant que SELLER**
+
+1. **S'inscrire en tant que vendeur**
+   - Rôle = SELLER lors de l'inscription
+
+2. **Accéder au dashboard**
+   - Connexion → Redirection automatique vers `/seller/dashboard`
+   - Vue tableau de tous vos produits
+
+3. **Créer un produit**
+   - Cliquer sur "Ajouter un produit"
+   - Remplir le formulaire :
+     - Nom (min 3 caractères)
+     - Description (min 10 caractères)
+     - Prix (> 0.01 €)
+     - Stock (entier ≥ 0)
+     - Catégorie (dropdown)
+   - Ajouter des images (optionnel, max 2MB)
+   - Cliquer sur "Créer"
+
+4. **Modifier un produit**
+   - Cliquer sur l'icône ✏️ (edit)
+   - Les images existantes s'affichent
+   - Supprimer des images avec ❌
+   - Ajouter de nouvelles images
+   - Modifier les informations
+   - Cliquer sur "Enregistrer"
+
+5. **Supprimer un produit**
+   - Cliquer sur l'icône 🗑️ (delete)
+   - Confirmer la suppression
+   - Toutes les images sont supprimées automatiquement (Kafka)
+
+6. **Voir la boutique**
+   - Cliquer sur "Voir la boutique" pour voir vos produits comme un client
 
 ---
 
@@ -203,40 +399,237 @@ ng test
 
 ## 📚 Documentation API
 
-### User Service (Port 8081)
-- `POST /api/auth/register` - Inscription
-- `POST /api/auth/login` - Connexion
-- `GET /api/users/profile` - Profil utilisateur
-- `PUT /api/users/profile` - Modifier profil
+### 🔵 **User Service** (Port 8081)
 
-### Product Service (Port 8082)
-- `GET /api/products` - Liste produits
-- `GET /api/products/{id}` - Détail produit
-- `POST /api/products` - Créer produit (SELLER)
-- `PUT /api/products/{id}` - Modifier produit (SELLER)
-- `DELETE /api/products/{id}` - Supprimer produit (SELLER)
+#### Authentification
+```http
+POST /api/auth/register
+Content-Type: application/json
 
-### Media Service (Port 8083)
-- `POST /api/media/upload` - Upload image (max 2MB)
-- `GET /api/media/{id}` - Récupérer image
-- `DELETE /api/media/{id}` - Supprimer image (SELLER)
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123",
+  "role": "CLIENT"
+}
+```
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+Response:
+{
+  "token": "eyJhbGc...",
+  "userId": "123",
+  "email": "john@example.com",
+  "name": "John Doe",
+  "role": "CLIENT"
+}
+```
+
+---
+
+### 🟢 **Product Service** (Port 8082)
+
+#### Endpoints publics
+```http
+GET /api/products
+# Liste tous les produits
+
+GET /api/products/{id}
+# Détail d'un produit
+
+GET /api/products/search?keyword=iPhone
+# Recherche de produits
+
+GET /api/products/category/{category}
+# Produits par catégorie
+```
+
+#### Endpoints protégés (SELLER uniquement)
+```http
+POST /api/products
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "iPhone 15 Pro",
+  "description": "Dernier iPhone avec puce A17",
+  "price": 1299.99,
+  "stock": 50,
+  "category": "Smartphones"
+}
+```
+
+```http
+PUT /api/products/{id}
+Authorization: Bearer <token>
+# Modifier un produit (seulement le propriétaire)
+
+DELETE /api/products/{id}
+Authorization: Bearer <token>
+# Supprimer un produit (déclenche suppression Kafka des images)
+
+GET /api/products/seller/my-products
+Authorization: Bearer <token>
+# Récupérer les produits du vendeur connecté
+```
+
+---
+
+### 🟡 **Media Service** (Port 8083)
+
+```http
+POST /api/media/upload
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+
+file: [fichier image]
+productId: "product123"
+
+Contraintes:
+- Max 2MB par image
+- Formats: JPG, PNG, GIF
+```
+
+```http
+GET /api/media/product/{productId}
+# Récupérer toutes les images d'un produit
+
+DELETE /api/media/{id}
+Authorization: Bearer <token>
+# Supprimer une image (seulement le propriétaire du produit)
+
+GET /uploads/{filename}
+# Accéder à l'image (URL retournée par upload)
+```
 
 ---
 
 ## 🐳 Docker
 
-### Services Docker
-- **MongoDB** - Base de données
-- **Kafka** - Message broker
-- **Zookeeper** - Kafka dependency
-- **Backend services** - Microservices
-- **Frontend** - Application Angular
+### Services Docker Compose
+```yaml
+services:
+  mongodb:
+    image: mongo:7.0
+    ports: 27017:27017
+    volumes: mongodb_data
+    
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    ports: 9092:9092
+    depends_on: zookeeper
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+```
+
+### Commandes utiles
+```bash
+# Démarrer tous les services
+docker-compose up -d
+
+# Voir les logs
+docker-compose logs -f
+
+# Arrêter les services
+docker-compose down
+
+# Arrêter et supprimer les volumes
+docker-compose down -v
+
+# Redémarrer un service spécifique
+docker-compose restart mongodb
+```
 
 ---
 
-## 👥 Équipe & Contribution
+## 🔄 Architecture Kafka
 
-Développé dans le cadre d'un projet e-commerce microservices.
+### Topic : `product-events`
+
+**Producteur** : Product Service  
+**Consommateur** : Media Service
+
+**Cas d'usage** : Suppression en cascade
+1. Un SELLER supprime un produit
+2. Product Service publie un événement sur Kafka :
+   ```json
+   {
+     "type": "PRODUCT_DELETED",
+     "productId": "123"
+   }
+   ```
+3. Media Service consomme l'événement
+4. Media Service supprime toutes les images liées au produit
+5. Les fichiers physiques sont supprimés du dossier `uploads/`
+
+---
+
+## 📸 Screenshots
+
+### Page Login
+![Login](docs/screenshots/login.png)
+
+### Liste des Produits (CLIENT)
+![Products](docs/screenshots/products.png)
+
+### Page Détail Produit
+![Detail](docs/screenshots/product-detail.png)
+
+### Panier d'Achat
+![Cart](docs/screenshots/cart.png)
+
+### Dashboard Vendeur (SELLER)
+![Dashboard](docs/screenshots/seller-dashboard.png)
+
+### Formulaire Produit
+![Form](docs/screenshots/product-form.png)
+
+---
+
+## 🧪 Tests & Validation
+
+### Tests Manuels Essentiels
+- ✅ Inscription CLIENT et SELLER
+- ✅ Connexion avec rôles différents
+- ✅ Protection des routes (guards)
+- ✅ CRUD produits complet
+- ✅ Upload images multiples
+- ✅ Suppression en cascade (Kafka)
+- ✅ Système de panier par utilisateur
+- ✅ Recherche de produits
+
+---
+
+## 🚧 Prochaines Étapes
+
+### À Implémenter (Ordre de priorité)
+1. **Order Service** - Microservice de gestion des commandes
+2. **Checkout Page** - Finalisation des achats
+3. **Order History** - Historique pour CLIENT et SELLER
+4. **Email Notifications** - Confirmation de commande
+5. **Payment Integration** - Stripe/PayPal
+6. **Product Reviews** - Avis et notes
+7. **Admin Panel** - Interface d'administration
+
+---
+
+## 👥 Auteur
+
+Développé par **jbenromd** - Zone01 Normandie
 
 ---
 
@@ -248,8 +641,10 @@ Ce projet est à usage éducatif.
 
 ## 🔗 Ressources
 
-- [Spring Boot Microservices Guide](https://spring.io/microservices)
-- [Spring Cloud Eureka](https://spring.io/projects/spring-cloud-netflix)
-- [Let's Encrypt](https://letsencrypt.org/)
+- [Spring Boot Documentation](https://spring.io/projects/spring-boot)
 - [Angular Documentation](https://angular.io/docs)
 - [Apache Kafka](https://kafka.apache.org/)
+- [MongoDB Manual](https://www.mongodb.com/docs/)
+
+**Bonne découverte ! 🎉**
+
