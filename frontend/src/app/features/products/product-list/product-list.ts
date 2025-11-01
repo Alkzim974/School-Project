@@ -6,11 +6,14 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatBadgeModule } from '@angular/material/badge';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Product } from '../../../core/services/product';
 import { MediaService } from '../../../core/services/media';
+import { Cart } from '../../../core/services/cart';
 import { Auth } from '../../../core/services/auth';
 import { Product as ProductModel } from '../../../core/models/product.model';
 import { forkJoin, of } from 'rxjs';
@@ -25,9 +28,11 @@ import { catchError, map } from 'rxjs/operators';
     MatCardModule,
     MatButtonModule,
     MatIconModule,
+    MatBadgeModule,
     MatFormFieldModule,
     MatInputModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatSnackBarModule
   ],
   templateUrl: './product-list.html',
   styleUrl: './product-list.scss',
@@ -37,16 +42,23 @@ export class ProductList implements OnInit {
   loading = false;
   errorMessage = '';
   searchKeyword = '';
+  cartCount = 0;
 
   constructor(
     private productService: Product,
     private mediaService: MediaService,
+    private cartService: Cart,
     private authService: Auth,
-    private router: Router
+    private router: Router,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
     this.loadProducts();
+    this.updateCartCount();
+    this.cartService.cartItems$.subscribe(() => {
+      this.updateCartCount();
+    });
   }
 
   loadProducts(): void {
@@ -143,6 +155,45 @@ export class ProductList implements OnInit {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  viewDetails(productId: string): void {
+    this.router.navigate(['/products', productId]);
+  }
+
+  updateCartCount(): void {
+    this.cartCount = this.cartService.getCartCount();
+  }
+
+  addToCart(product: any): void {
+    if (product.stock === 0) {
+      this.snackBar.open('Produit en rupture de stock', 'Fermer', {
+        duration: 2000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    this.cartService.addToCart({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      imageUrl: product.imageUrl || null
+    });
+
+    this.snackBar.open(`${product.name} ajouté au panier`, 'Voir le panier', {
+      duration: 3000,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom',
+      panelClass: ['success-snackbar']
+    }).onAction().subscribe(() => {
+      this.router.navigate(['/cart']);
+    });
+  }
+
+  goToCart(): void {
+    this.router.navigate(['/cart']);
   }
 }
 

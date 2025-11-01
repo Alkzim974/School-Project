@@ -11,6 +11,11 @@
       <input matInput [(ngModel)]="searchKeyword" (keyup.enter)="onSearch()" placeholder="Ex: Ordinateur">
       <mat-icon matPrefix>search</mat-icon>
     </mat-form-field>
+
+    <!-- Bouton Panier avec badge -->
+    <button mat-icon-button class="cart-button" (click)="goToCart()">
+      <mat-icon [matBadge]="cartCount" matBadgeColor="warn" [matBadgeHidden]="cartCount === 0">shopping_cart</mat-icon>
+    </button>
     
     <!-- Bouton déconnexion -->
     <button mat-raised-button color="warn" (click)="logout()">
@@ -75,11 +80,11 @@
               </mat-card-content>
               
               <mat-card-actions>
-                <button mat-raised-button color="primary">
+                <button mat-raised-button color="primary" (click)="addToCart(product)">
                   <mat-icon>shopping_cart</mat-icon>
                   Ajouter au panier
                 </button>
-                <button mat-button color="accent">
+                <button mat-button color="accent" (click)="viewDetails(product.id)">
                   <mat-icon>info</mat-icon>
                   Détails
                 </button>

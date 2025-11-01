@@ -7,10 +7,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Product } from '../../../core/services/product';
 import { Auth } from '../../../core/services/auth';
 import { Product as ProductModel } from '../../../core/models/product.model';
+import { ProductFormDialog } from '../product-form-dialog/product-form-dialog';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,7 +24,8 @@ import { Product as ProductModel } from '../../../core/models/product.model';
     MatCardModule,
     MatTableModule,
     MatProgressSpinnerModule,
-    MatDialogModule
+    MatDialogModule,
+    MatSnackBarModule
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
@@ -36,7 +39,9 @@ export class Dashboard implements OnInit {
   constructor(
     private productService: Product,
     private authService: Auth,
-    private router: Router
+    private router: Router,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -62,25 +67,61 @@ export class Dashboard implements OnInit {
   }
 
   addProduct(): void {
-    // TODO: Ouvrir un dialog pour ajouter un produit
-    console.log('Ajouter un produit');
+    const dialogRef = this.dialog.open(ProductFormDialog, {
+      width: '600px',
+      data: { mode: 'create' }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && result.success) {
+        this.snackBar.open('Produit créé avec succès!', 'Fermer', {
+          duration: 3000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top',
+          panelClass: ['success-snackbar']
+        });
+        this.loadMyProducts();
+      }
+    });
   }
 
   editProduct(product: ProductModel): void {
-    // TODO: Ouvrir un dialog pour éditer
-    console.log('Éditer:', product);
+    const dialogRef = this.dialog.open(ProductFormDialog, {
+      width: '600px',
+      data: { product, mode: 'edit' }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && result.success) {
+        this.snackBar.open('Produit modifié avec succès!', 'Fermer', {
+          duration: 3000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top',
+          panelClass: ['success-snackbar']
+        });
+        this.loadMyProducts();
+      }
+    });
   }
 
   deleteProduct(product: ProductModel): void {
     if (confirm(`Supprimer "${product.name}" ? Toutes les images seront aussi supprimées.`)) {
       this.productService.deleteProduct(product.id).subscribe({
         next: () => {
-          console.log('Produit supprimé');
+          this.snackBar.open('Produit supprimé avec succès!', 'Fermer', {
+            duration: 3000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+            panelClass: ['success-snackbar']
+          });
           this.loadMyProducts();
         },
         error: (error) => {
           console.error('Erreur de suppression:', error);
-          alert('Erreur lors de la suppression');
+          this.snackBar.open('Erreur lors de la suppression', 'Fermer', {
+            duration: 3000,
+            panelClass: ['error-snackbar']
+          });
         }
       });
     }

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, tap } from 'rxjs';
 import { AuthResponse, LoginRequest, RegisterRequest, User } from '../models/user.model';
+import { Cart } from './cart';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +15,10 @@ export class Auth {
   private currentUserSubject = new BehaviorSubject<User | null>(this.getCurrentUser());
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private cartService: Cart
+  ) { }
 
   /**
    * Inscription d'un nouvel utilisateur
@@ -39,6 +43,8 @@ export class Auth {
           };
           this.saveUser(user);
           this.currentUserSubject.next(user);
+          // Recharger le panier de l'utilisateur connecté
+          this.cartService.loadCart();
         })
       );
   }
@@ -50,6 +56,8 @@ export class Auth {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);
     this.currentUserSubject.next(null);
+    // Vider le panier en mémoire (mais pas supprimer du localStorage)
+    this.cartService.clearCartOnLogout();
   }
 
   /**
