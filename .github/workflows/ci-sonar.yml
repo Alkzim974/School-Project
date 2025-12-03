@@ -1,0 +1,47 @@
+name: CI & SonarQube
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['main', 'develop', '*']
+  pull_request:
+    branches: ['main', 'develop']
+
+jobs:
+  build-and-analyze:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      # Build chaque microservice pour produire les rapports JaCoCo
+      - name: Build user-service
+        working-directory: backend/user-service
+        run: mvn -B clean verify jacoco:report
+
+      - name: Build product-service
+        working-directory: backend/product-service
+        run: mvn -B clean verify jacoco:report
+
+      - name: Build media-service
+        working-directory: backend/media-service
+        run: mvn -B clean verify jacoco:report
+
+      # Analyse SonarQube au niveau racine (monorepo) via sonar-project.properties
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: Quality Gate
+        uses: sonarsource/sonarqube-quality-gate-action@v1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
