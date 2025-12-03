@@ -3,9 +3,9 @@ name: CI & SonarQube
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "develop", "*" ]
+    branches: ['main', 'develop', '*']
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: ['main', 'develop']
 
 jobs:
   build-and-analyze:
@@ -34,16 +34,30 @@ jobs:
         working-directory: backend/media-service
         run: mvn -B clean verify jacoco:report
 
-      # Analyse SonarQube au niveau racine (monorepo) via sonar-project.properties
-      - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@v2
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      # Analyses SonarQube via Maven (attente Quality Gate incluse)
+      - name: Sonar analyze user-service (Maven)
+        working-directory: backend/user-service
+        run: |
+          mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.projectKey=buy01-user-service \
+            -Dsonar.qualitygate.wait=true
 
-      - name: Quality Gate
-        uses: sonarsource/sonarqube-quality-gate-action@v1
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Sonar analyze product-service (Maven)
+        working-directory: backend/product-service
+        run: |
+          mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.projectKey=buy01-product-service \
+            -Dsonar.qualitygate.wait=true
 
-
+      - name: Sonar analyze media-service (Maven)
+        working-directory: backend/media-service
+        run: |
+          mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.projectKey=buy01-media-service \
+            -Dsonar.qualitygate.wait=true
