@@ -1,3 +1,35 @@
+# Java / Maven
+target/
+*.iml
+.idea/
+.project
+.classpath
+.settings/
+.factorypath
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node/Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# Coverage / build artifacts
+**/coverage/
+**/dist/
+**/.cache/
+
+# Sonar local files (le token ne doit pas être commité)
+**/.scannerwork/
+sqp_*
+
 # ===================================
 # GITIGNORE - E-Commerce Project
 # ===================================
